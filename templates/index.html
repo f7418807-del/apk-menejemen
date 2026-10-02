@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AturUang — Manajemen Keuangan Pribadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand"><span class="brand-badge">💰</span> AturUang</div>
+    <div class="header-right">
+      <div class="account-badge synced">
+        <span class="avatar-fallback" style="background:var(--accent);">{{ username[0]|upper }}</span>
+        <div class="acc-text">
+          <span class="acc-name">{{ username }}</span>
+          <span class="acc-status">Login</span>
+        </div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="theme-btn" title="Keluar">⏻</a>
+      <button class="theme-btn" id="themeToggle">🌙/☀️</button>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar">
+    <button class="tab-btn active" data-tab="ringkasan">Ringkasan</button>
+    <button class="tab-btn" data-tab="transaksi">Transaksi</button>
+    <button class="tab-btn" data-tab="anggaran">Anggaran</button>
+    <button class="tab-btn" data-tab="tabungan">Tabungan</button>
+    <button class="tab-btn" data-tab="tren">Tren</button>
+    <button class="tab-btn" data-tab="dompet">Dompet</button>
+    <button class="tab-btn" data-tab="data">Data</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- RINGKASAN -->
+  <div class="tab-view active" id="tab-ringkasan">
+    <div class="summary-grid">
+      <div class="summary-card balance"><div class="label">Saldo Bulan Ini</div><div class="value" id="sumBalance">Rp 0</div></div>
+      <div class="summary-card income"><div class="label">Pemasukan</div><div class="value" id="sumIncome">Rp 0</div></div>
+      <div class="summary-card expense"><div class="label">Pengeluaran</div><div class="value" id="sumExpense">Rp 0</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Tambah Transaksi Cepat</h2>
+      <div class="type-toggle">
+        <button class="type-btn active income-active" id="btnTypeIncome" onclick="setType('income')">↓ Pemasukan</button>
+        <button class="type-btn" id="btnTypeExpense" onclick="setType('expense')">↑ Pengeluaran</button>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Jumlah (Rp)</label><input type="number" id="inpAmount" placeholder="contoh: 50000" min="0"></div>
+        <div class="form-field"><label>Kategori</label><select id="inpCategory"></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Dompet</label><select id="inpWallet"></select></div>
+        <div class="form-field"><label>Tanggal</label><input type="date" id="inpDate"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field" style="flex:1;"><label>Catatan (opsional)</label><input type="text" id="inpNote" placeholder="contoh: makan siang"></div>
+      </div>
+      <button class="btn full" id="btnAdd">Simpan Transaksi</button>
+    </div>
+
+    <div class="panel">
+      <h2>Pengeluaran per Kategori (bulan ini)</h2>
+      <div class="chart-wrap"><div class="chart-row" id="chartRow"></div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Transaksi Terbaru</h2>
+      <div class="tx-list" id="recentList"></div>
+    </div>
+  </div>
+
+  <!-- TRANSAKSI -->
+  <div class="tab-view" id="tab-transaksi">
+    <div class="tx-header-card">
+      <div class="month-nav-v2">
+        <button id="prevMonth" aria-label="Bulan sebelumnya">‹</button>
+        <div class="cur" id="curMonthLabel"></div>
+        <button id="nextMonth" aria-label="Bulan berikutnya">›</button>
+      </div>
+      <div class="tx-mini-summary">
+        <div class="mini-stat">
+          <span class="mini-dot income-dot"></span>
+          <div><div class="mini-label">Masuk</div><div class="mini-value income-text" id="txSumIncome">Rp 0</div></div>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-dot expense-dot"></span>
+          <div><div class="mini-label">Keluar</div><div class="mini-value expense-text" id="txSumExpense">Rp 0</div></div>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-dot balance-dot"></span>
+          <div><div class="mini-label">Selisih</div><div class="mini-value" id="txSumNet">Rp 0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel tx-panel">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="filterSearch" placeholder="Cari catatan atau kategori...">
+      </div>
+      <div class="chip-filter-row" id="typeChipRow">
+        <button class="chip-filter active" data-type="all">Semua</button>
+        <button class="chip-filter" data-type="income">↓ Pemasukan</button>
+        <button class="chip-filter" data-type="expense">↑ Pengeluaran</button>
+      </div>
+      <div class="filter-row">
+        <select id="filterCategory" class="cat-select"><option value="all">Semua Kategori</option></select>
+      </div>
+
+      <div id="txGroupedList"></div>
+    </div>
+  </div>
+
+  <!-- ANGGARAN -->
+  <div class="tab-view" id="tab-anggaran">
+    <div class="panel">
+      <h2>Atur Anggaran Bulanan</h2>
+      <p class="hint">Anggaran berlaku setiap bulan dan dibandingkan dengan pengeluaran bulan yang sedang dilihat di tab Transaksi.</p>
+      <div class="form-row">
+        <div class="form-field"><label>Kategori</label><select id="budgetCategory"></select></div>
+        <div class="form-field"><label>Batas (Rp / bulan)</label><input type="number" id="budgetAmount" min="0" placeholder="contoh: 500000"></div>
+      </div>
+      <button class="btn full" id="btnSetBudget">Simpan Anggaran</button>
+    </div>
+    <div class="panel">
+      <h2>Progres Anggaran (<span id="budgetMonthLabel"></span>)</h2>
+      <div id="budgetList"></div>
+    </div>
+  </div>
+
+  <!-- TABUNGAN -->
+  <div class="tab-view" id="tab-tabungan">
+    <div class="panel">
+      <h2>Buat Target Tabungan Baru</h2>
+      <div class="form-row">
+        <div class="form-field"><label>Nama Target</label><input type="text" id="goalName" placeholder="contoh: Dana Darurat"></div>
+        <div class="form-field"><label>Ikon</label>
+          <select id="goalIcon">
+            <option value="🎯">🎯 Target</option>
+            <option value="🏠">🏠 Rumah</option>
+            <option value="🚗">🚗 Kendaraan</option>
+            <option value="✈️">✈️ Liburan</option>
+            <option value="🎓">🎓 Pendidikan</option>
+            <option value="🛟">🛟 Dana Darurat</option>
+            <option value="📱">📱 Gadget</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Target Jumlah (Rp)</label><input type="number" id="goalTarget" min="0" placeholder="contoh: 5000000"></div>
+      </div>
+      <button class="btn full" id="btnAddGoal">Buat Target</button>
+    </div>
+    <div class="panel">
+      <h2>Target Tabunganmu</h2>
+      <div id="goalList"></div>
+    </div>
+  </div>
+
+  <!-- TREN -->
+  <div class="tab-view" id="tab-tren">
+    <div class="panel">
+      <h2>Tren 6 Bulan Terakhir</h2>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:var(--income);"></span>Pemasukan</span>
+        <span><span class="legend-dot" style="background:var(--expense);"></span>Pengeluaran</span>
+      </div>
+      <div class="chart-wrap"><div class="trend-row" id="trendRow"></div></div>
+    </div>
+  </div>
+
+  <!-- DOMPET -->
+  <div class="tab-view" id="tab-dompet">
+    <div class="panel">
+      <h2>Dompet / Akun</h2>
+      <div class="wallet-grid" id="walletGrid"></div>
+      <div class="form-row">
+        <div class="form-field"><label>Nama Dompet Baru</label><input type="text" id="newWalletName" placeholder="contoh: Rekening BCA"></div>
+        <div class="form-field"><label>Ikon</label>
+          <select id="newWalletIcon">
+            <option value="💵">💵</option><option value="🏦">🏦</option><option value="📱">📱</option>
+            <option value="💳">💳</option><option value="🐷">🐷</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn full" id="btnAddWallet">Tambah Dompet</button>
+    </div>
+
+    <div class="panel">
+      <h2>Kategori Kustom</h2>
+      <p class="hint">Tambahkan kategori sendiri di luar kategori bawaan.</p>
+      <div class="cat-chip-row" id="customCatChips"></div>
+      <div class="form-row">
+        <div class="form-field"><label>Nama Kategori</label><input type="text" id="newCatName" placeholder="contoh: Donasi"></div>
+        <div class="form-field"><label>Tipe</label>
+          <select id="newCatType"><option value="expense">Pengeluaran</option><option value="income">Pemasukan</option></select>
+        </div>
+        <div class="form-field"><label>Ikon</label><input type="text" id="newCatIcon" placeholder="🙏" maxlength="4"></div>
+      </div>
+      <button class="btn full btn-outline" id="btnAddCat">Tambah Kategori</button>
+    </div>
+  </div>
+
+  <!-- DATA -->
+  <div class="tab-view" id="tab-data">
+    <div class="panel">
+      <h2>Akun</h2>
+      <div class="sync-banner">
+        <span class="sb-icon">👤</span>
+        <span>Kamu login sebagai <strong>{{ username }}</strong>. Semua data yang kamu catat tersimpan di server dan cuma bisa diakses lewat akun ini.</span>
+      </div>
+      <a class="btn btn-outline full" style="display:block; text-align:center; text-decoration:none;" href="{{ url_for('logout') }}">Keluar dari Akun</a>
+    </div>
+    <div class="panel">
+      <h2>Cadangkan / Pulihkan Data</h2>
+      <p class="hint">Ekspor data secara berkala untuk cadangan, atau pindahkan ke tempat lain.</p>
+      <div class="data-actions">
+        <button class="btn" id="btnExport">⬇️ Ekspor Data (JSON)</button>
+        <button class="btn btn-outline" id="btnImportTrigger">⬆️ Impor Data (JSON)</button>
+        <input type="file" id="fileImport" accept="application/json">
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Reset</h2>
+      <p class="hint">Menghapus semua transaksi, dompet, anggaran, dan target tabungan di akun ini. Tidak bisa dibatalkan.</p>
+      <button class="btn btn-danger full" id="btnReset">Hapus Semua Data</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>🐷 Yuk rajin nabung! Data kamu tersimpan aman di akun {{ username }} · tanpa AI</footer>
+<div class="toast" id="toast"></div>
+<script id="server-data" type="application/json">{{ username|tojson }}</script>
+<script>window.SERVER_USERNAME = JSON.parse(document.getElementById('server-data').textContent);</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+

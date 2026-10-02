@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masuk — AturUang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand"><span class="brand-badge">💰</span> <strong>AturUang</strong></div>
+      <div class="auth-subtitle">Masuk ke akunmu untuk lanjut mencatat keuangan</div>
+
+      {% if error %}<div class="auth-error">{{ error }}</div>{% endif %}
+
+      <form method="POST">
+        <div class="auth-field">
+          <label>Username atau Email</label>
+          <input type="text" name="identifier" required autofocus>
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" name="password" required>
+        </div>
+        <button class="btn full" type="submit">Masuk</button>
+      </form>
+
+      <div class="auth-switch">Belum punya akun? <a href="{{ url_for('register') }}">Daftar di sini</a></div>
+    </div>
+  </div>
+</body>
+</html>
